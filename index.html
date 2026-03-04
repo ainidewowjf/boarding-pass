@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>飞机登机牌生成器 · Boarding Pass Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:'Nunito',system-ui,sans-serif;background:#f3f4f6;color:#111827;min-height:100vh}
+.header{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.header-left{display:flex;align-items:center;gap:10px}
+.header-title{font-size:17px;font-weight:800;color:#111827}
+.header-sub{font-size:11px;color:#9ca3af;margin-top:1px}
+.header-badge{background:#eff6ff;color:#3b82f6;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid #bfdbfe}
+.main{display:flex;gap:20px;max-width:1440px;margin:0 auto;padding:20px}
+.sidebar{width:370px;flex-shrink:0;display:flex;flex-direction:column;gap:14px}
+.content{flex:1;display:flex;flex-direction:column;gap:16px}
+.card{background:#fff;border-radius:12px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.card-header{padding:14px 16px 0;font-size:12px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:1px}
+.card-body{padding:12px 16px}
+.sdiv{height:1px;background:#f3f4f6;margin:8px 0}
+.form-row{display:flex;gap:10px}
+.form-group{flex:1;margin-bottom:10px}
+.form-group:last-child{margin-bottom:0}
+.form-group label{display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.3px}
+.form-group input,.form-group select{width:100%;padding:8px 11px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;color:#111827;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+.form-group input:focus,.form-group select:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+.airline-scroll{display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px}
+.atab{padding:5px 12px;border-radius:20px;border:1.5px solid #e5e7eb;background:#fff;font-size:11px;font-weight:700;color:#6b7280;cursor:pointer;transition:all .15s;font-family:inherit;white-space:nowrap}
+.atab:hover{border-color:#a5b4fc;color:#4f46e5;background:#eef2ff}
+.atab.active{border-color:#6366f1;background:#6366f1;color:#fff}
+.atab .code{font-size:13px;font-weight:800;margin-right:3px}
+.group-label{width:100%;font-size:10px;font-weight:700;color:#d1d5db;text-transform:uppercase;letter-spacing:1px;padding:4px 0 4px}
+.btn-row{display:flex;gap:10px;padding:0 16px 14px}
+.btn-dl{flex:1;padding:11px;background:#6366f1;color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-dl:hover{background:#4f46e5}
+.btn-dl:disabled{opacity:.6;cursor:not-allowed}
+.btn-rnd{padding:11px 16px;background:#f9fafb;border:1.5px solid #e5e7eb;color:#4b5563;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-rnd:hover{border-color:#a5b4fc;color:#4f46e5}
+.preview-card{background:#fff;border-radius:12px;border:1px solid #e5e7eb}
+.preview-header{padding:12px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f3f4f6}
+.preview-title{font-size:13px;font-weight:700;color:#374151;display:flex;align-items:center;gap:7px}
+.preview-hint{font-size:11px;color:#9ca3af}
+.canvas-wrap{padding:24px;display:flex;justify-content:center;background:#f9fafb}
+.canvas-wrap canvas{border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.16);max-width:100%;height:auto;cursor:pointer}
+.info-card{background:#fefce8;border:1px solid #fde68a;border-radius:10px;padding:10px 14px;font-size:12px;color:#92400e}
+.footer{text-align:center;padding:20px;font-size:12px;color:#9ca3af}
+#fsOverlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.92);align-items:center;justify-content:center;padding:20px}
+#fsOverlay canvas{max-width:100%;max-height:100%;border-radius:10px}
+@media(max-width:1080px){.main{flex-direction:column;align-items:center}.sidebar{width:100%;max-width:860px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <span style="font-size:22px">✈️</span>
+    <div>
+      <div class="header-title">飞机登机牌生成器</div>
+      <div class="header-sub">Boarding Pass Generator · 仅供学习娱乐</div>
+    </div>
+  </div>
+  <span class="header-badge">24 家航司 · 真实样式</span>
+</div>
+
+<div class="main">
+  <div class="sidebar">
+    <div class="card">
+      <div class="card-header">选择航空公司</div>
+      <div class="airline-scroll" id="airlineGrid"></div>
+    </div>
+    <div class="card">
+      <div class="card-header">登机牌信息</div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>中文姓名</label>
+            <input id="nameCn" value="张三" placeholder="张三">
+          </div>
+          <div class="form-group">
+            <label>拼音（姓/名）</label>
+            <input id="nameEn" value="ZHANG/SAN" placeholder="ZHANG/SAN">
+          </div>
+        </div>
+        <div class="sdiv"></div>
+        <div class="form-row">
+          <div class="form-group"><label>出发 From</label><select id="fromCity"></select></div>
+          <div class="form-group"><label>到达 To</label><select id="toCity"></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>出发航站楼</label><select id="depTerm"><option>T1</option><option selected>T2</option><option>T3</option><option>T4</option><option>T5</option><option>国内</option><option>国际</option></select></div>
+          <div class="form-group"><label>到达航站楼</label><select id="arrTerm"><option>T1</option><option selected>T2</option><option>T3</option><option>T4</option><option>T5</option><option>国内</option><option>国际</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>航班号</label><input id="flightNum" value="CA1234"></div>
+          <div class="form-group"><label>飞行日期</label><input id="flightDate" type="date"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>起飞时间 DEP</label><input id="depTime" type="time" value="10:30"></div>
+          <div class="form-group"><label>到达时间 ARR</label><input id="arrTime" type="time" value="13:45"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>登机时间 Board</label><input id="boardTime" type="time" value="10:00"></div>
+          <div class="form-group"><label>登机口 Gate</label><input id="gate" value="B12"></div>
+        </div>
+        <div class="sdiv"></div>
+        <div class="form-row">
+          <div class="form-group"><label>座位号 Seat</label><input id="seat" value="23F"></div>
+          <div class="form-group"><label>序号 Seq/BD</label><input id="seq" value="077"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>舱位</label>
+            <select id="cabin">
+              <option value="Y">Y 经济舱 Economy</option>
+              <option value="W">W 超级经济舱 Premium</option>
+              <option value="C">C 商务舱 Business</option>
+              <option value="F">F 头等舱 First</option>
+            </select>
+          </div>
+          <div class="form-group"><label>订单号 PNR</label><input id="pnr" value="ABC123"></div>
+        </div>
+        <div class="form-group">
+          <label>ETKT 票号（自动生成可手动改）</label>
+          <input id="etkt" value="7315408591787">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-dl" id="dlBtn" onclick="downloadPass()">⬇ 下载高清 PNG</button>
+        <button class="btn-rnd" onclick="randomize()">🎲 随机</button>
+        <button class="btn-rnd" onclick="saveHtml()" style="background:#f0fdf4;border-color:#86efac;color:#166534">💾 保存网页到本地</button>
+      </div>
+    </div>
+    <div class="info-card">⚠️ 登机牌仅供<strong>学习、创意、娱乐</strong>，不得用于违法用途。下载 3× 高清 PNG 可直接打印。</div>
+  </div>
+
+  <div class="content">
+    <div class="preview-card">
+      <div class="preview-header">
+        <div class="preview-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/></svg>
+          登机牌预览（点击全屏）
+        </div>
+        <span class="preview-hint">190mm × 80mm 真实比例</span>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="bpCanvas" onclick="openFull()"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">飞机登机牌生成器 · Boarding Pass Generator · 仅供学习娱乐</div>
+
+<div id="fsOverlay" onclick="closeFull()">
+  <canvas id="fsCanvas"></canvas>
+</div>
+
+<script>
+// ═══════════ AIRPORTS ═══════════
+const AIRPORTS=[
+  {c:'PEK',cn:'北京首都',en:'BEIJING CAPITAL'},{c:'PKX',cn:'北京大兴',en:'BEIJING DAXING'},
+  {c:'PVG',cn:'上海浦东',en:'SHANGHAI PUDONG'},{c:'SHA',cn:'上海虹桥',en:'SHANGHAI HONGQIAO'},
+  {c:'CAN',cn:'广州白云',en:'GUANGZHOU BAIYUN'},{c:'SZX',cn:'深圳宝安',en:'SHENZHEN BOAN'},
+  {c:'CTU',cn:'成都天府',en:'CHENGDU TIANFU'},{c:'TFU',cn:'成都双流',en:'CHENGDU SHUANGLIU'},
+  {c:'KMG',cn:'昆明长水',en:'KUNMING CHANGSHUI'},{c:'XIY',cn:'西安咸阳',en:"XI'AN XIANYANG"},
+  {c:'WUH',cn:'武汉天河',en:'WUHAN TIANHE'},{c:'HGH',cn:'杭州萧山',en:'HANGZHOU XIAOSHAN'},
+  {c:'NKG',cn:'南京禄口',en:'NANJING LUKOU'},{c:'CKG',cn:'重庆江北',en:'CHONGQING JIANGBEI'},
+  {c:'XMN',cn:'厦门高崎',en:'XIAMEN GAOQI'},{c:'HAK',cn:'海口美兰',en:'HAIKOU MEILAN'},
+  {c:'SYX',cn:'三亚凤凰',en:'SANYA PHOENIX'},{c:'URC',cn:'乌鲁木齐',en:'URUMQI DIWOPU'},
+  {c:'HRB',cn:'哈尔滨太平',en:'HARBIN TAIPING'},{c:'TSN',cn:'天津滨海',en:'TIANJIN BINHAI'},
+  {c:'DLC',cn:'大连周水子',en:'DALIAN ZHOUSHUIZI'},{c:'CSX',cn:'长沙黄花',en:'CHANGSHA HUANGHUA'},
+  {c:'TAO',cn:'青岛胶东',en:'QINGDAO JIAODONG'},{c:'SHE',cn:'沈阳桃仙',en:'SHENYANG TAOXIAN'},
+  {c:'NNG',cn:'南宁吴圩',en:'NANNING WUXU'},{c:'FOC',cn:'福州长乐',en:'FUZHOU CHANGLE'},
+  {c:'CGO',cn:'郑州新郑',en:'ZHENGZHOU XINZHENG'},{c:'TNA',cn:'济南遥墙',en:'JINAN YAOQIANG'},
+  {c:'WNZ',cn:'温州龙湾',en:'WENZHOU LONGWAN'},{c:'KWE',cn:'贵阳龙洞堡',en:'GUIYANG LONGDONG'},
+  {c:'HKG',cn:'香港赤鱲角',en:'HONG KONG INTL'},{c:'MFM',cn:'澳门国际',en:'MACAO INTL'},
+  {c:'TPE',cn:'台北桃园',en:'TAIPEI TAOYUAN'},{c:'NRT',cn:'东京成田',en:'TOKYO NARITA'},
+  {c:'HND',cn:'东京羽田',en:'TOKYO HANEDA'},{c:'KIX',cn:'大阪关西',en:'OSAKA KANSAI'},
+  {c:'ICN',cn:'首尔仁川',en:'SEOUL INCHEON'},{c:'SIN',cn:'新加坡樟宜',en:'SINGAPORE CHANGI'},
+  {c:'BKK',cn:'曼谷素万那普',en:'BANGKOK SUVARNABHUMI'},{c:'KUL',cn:'吉隆坡',en:'KUALA LUMPUR'},
+  {c:'DXB',cn:'迪拜国际',en:'DUBAI INTL'},{c:'DOH',cn:'多哈哈马德',en:'DOHA HAMAD'},
+  {c:'AUH',cn:'阿布扎比',en:'ABU DHABI INTL'},{c:'LHR',cn:'伦敦希思罗',en:'LONDON HEATHROW'},
+  {c:'CDG',cn:'巴黎戴高乐',en:'PARIS CDG'},{c:'FRA',cn:'法兰克福',en:'FRANKFURT'},
+  {c:'MUC',cn:'慕尼黑',en:'MUNICH INTL'},{c:'AMS',cn:'阿姆斯特丹',en:'AMSTERDAM SCHIPHOL'},
+  {c:'JFK',cn:'纽约肯尼迪',en:'NEW YORK JFK'},{c:'LAX',cn:'洛杉矶',en:'LOS ANGELES INTL'},
+  {c:'SFO',cn:'旧金山',en:'SAN FRANCISCO'},{c:'ORD',cn:'芝加哥奥黑尔',en:"CHICAGO O'HARE"},
+  {c:'SYD',cn:'悉尼金斯福德',en:'SYDNEY KINGSFORD'},{c:'MEL',cn:'墨尔本',en:'MELBOURNE'},
+];
+
+// ═══════════ AIRLINES ═══════════
+const LOGOS={
+  CA:`<svg viewBox="0 0 44 44"><polygon points="22,4 24.5,14 34,14 26,20 28.5,30 22,24 15.5,30 18,20 10,14 19.5,14" fill="#D4AF37"/></svg>`,
+  MU:`<svg viewBox="0 0 44 44"><path d="M5 34 Q14 6 39 15" stroke="#E5002B" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M8 27 Q18 5 39 21" stroke="#E5002B" stroke-width="3" fill="none" stroke-linecap="round" opacity=".5"/></svg>`,
+  CZ:`<svg viewBox="0 0 44 44"><ellipse cx="22" cy="26" rx="15" ry="9" fill="none" stroke="#1262A8" stroke-width="2.5"/><path d="M10 19 Q22 6 34 19" fill="none" stroke="#1262A8" stroke-width="4" stroke-linecap="round"/><circle cx="22" cy="26" r="3" fill="#FFD700"/></svg>`,
+  HU:`<svg viewBox="0 0 44 44"><polygon points="22,5 25,15 35,15 27,21 30,31 22,25 14,31 17,21 9,15 19,15" fill="#D4AF37"/></svg>`,
+  MF:`<svg viewBox="0 0 44 44"><path d="M6 22 L22 6 L38 22 L30 22 L22 12 L14 22Z" fill="#003893"/><path d="M10 30 L22 18 L34 30 L28 30 L22 22 L16 30Z" fill="#003893" opacity=".5"/></svg>`,
+  ZH:`<svg viewBox="0 0 44 44"><path d="M6 32 L22 8 L38 32 L30 32 L22 18 L14 32Z" fill="#C8102E"/></svg>`,
+  '3U':`<svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="16" fill="none" stroke="#003DA5" stroke-width="3"/><text x="22" y="27" text-anchor="middle" fill="#003DA5" font-size="14" font-weight="900">3U</text></svg>`,
+  '9C':`<svg viewBox="0 0 44 44"><rect x="4" y="4" width="36" height="36" rx="6" fill="#FF5500"/><text x="22" y="27" text-anchor="middle" fill="white" font-size="12" font-weight="900">春秋</text></svg>`,
+  HO:`<svg viewBox="0 0 44 44"><path d="M8 30 Q15 8 22 16 Q29 8 36 30" fill="none" stroke="#B8001C" stroke-width="3.5" stroke-linecap="round"/><circle cx="22" cy="18" r="6" fill="none" stroke="#FFD700" stroke-width="2.5"/></svg>`,
+  GS:`<svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="16" fill="#0066B3" opacity=".2"/><circle cx="22" cy="22" r="16" fill="none" stroke="#0066B3" stroke-width="2.5"/><text x="22" y="27" text-anchor="middle" fill="#0066B3" font-size="13" font-weight="900">GS</text></svg>`,
+  CX:`<svg viewBox="0 0 44 44"><path d="M4 25 Q12 5 33 16 Q38 20 37 30 Q26 34 14 24 Q7 18 4 25Z" fill="none" stroke="#006564" stroke-width="3"/></svg>`,
+  SQ:`<svg viewBox="0 0 44 44"><polygon points="22,4 25.5,15 37,15 28,22 31,33 22,26 13,33 16,22 7,15 18.5,15" fill="#F4C200"/></svg>`,
+  EK:`<svg viewBox="0 0 44 44"><rect x="4" y="16" width="36" height="14" rx="2" fill="none" stroke="#B8860B" stroke-width="2"/><text x="22" y="26" text-anchor="middle" fill="#C8102E" font-size="9" font-weight="900">EMIRATES</text></svg>`,
+  QR:`<svg viewBox="0 0 44 44"><path d="M12 32 L22 9 L32 32 L27 24 L22 28 L17 24Z" fill="#C9A84C"/></svg>`,
+  NH:`<svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="15" fill="none" stroke="#003087" stroke-width="2.5"/><text x="22" y="27" text-anchor="middle" fill="#003087" font-size="14" font-weight="900">ANA</text></svg>`,
+  JL:`<svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="13" fill="none" stroke="#E50012" stroke-width="2.5"/><circle cx="22" cy="22" r="8" fill="none" stroke="#333" stroke-width="1.5"/><circle cx="22" cy="22" r="4" fill="#E50012"/></svg>`,
+  KE:`<svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="14" fill="none" stroke="#E30022" stroke-width="3"/><path d="M14 22 Q22 12 30 22 Q22 32 14 22Z" fill="#E30022"/></svg>`,
+  AA:`<svg viewBox="0 0 44 44"><path d="M8 34 L18 8 L22 22 L26 8 L36 34" fill="none" stroke="#D50032" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="26" x2="32" y2="26" stroke="#D50032" stroke-width="2.5"/></svg>`,
+  DL:`<svg viewBox="0 0 44 44"><polygon points="22,6 38,38 6,38" fill="none" stroke="#E01B22" stroke-width="3"/><polygon points="22,12 33,36 11,36" fill="#E01B22" opacity=".25"/></svg>`,
+  UA:`<svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="15" fill="none" stroke="#0047BB" stroke-width="2"/><path d="M10 26 Q15 6 34 17" fill="none" stroke="#0047BB" stroke-width="3" stroke-linecap="round"/></svg>`,
+  BA:`<svg viewBox="0 0 44 44"><rect x="4" y="15" width="36" height="14" fill="none" stroke="#2B5EAB" stroke-width="1.5"/><rect x="4" y="15" width="12" height="14" fill="#EB2226" opacity=".7"/><rect x="28" y="15" width="12" height="14" fill="#EB2226" opacity=".7"/></svg>`,
+  AF:`<svg viewBox="0 0 44 44"><path d="M6 24 Q14 6 22 14 Q30 6 38 24" fill="none" stroke="#CB0A0C" stroke-width="3.5" stroke-linecap="round"/><path d="M9 30 Q17 14 25 21 Q31 14 38 30" fill="none" stroke="#002157" stroke-width="2" stroke-linecap="round" opacity=".5"/></svg>`,
+  LH:`<svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="15" fill="none" stroke="#F9BA00" stroke-width="3"/><path d="M13 22 Q17 10 28 15 Q33 18 31 26 Q24 28 16 23Z" fill="#F9BA00" opacity=".5"/></svg>`,
+  TG:`<svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="14" fill="none" stroke="#F7CC00" stroke-width="3"/><circle cx="22" cy="22" r="8" fill="none" stroke="#4B2B82" stroke-width="2"/><circle cx="22" cy="22" r="3" fill="#F7CC00"/></svg>`,
+};
+
+const ALLIANCES={CA:'STAR ALLIANCE',MU:'SKY TEAM',CZ:'SKY TEAM',HU:'',MF:'',ZH:'',
+  '3U':'',HO:'',GS:'',CX:'ONEWORLD',SQ:'STAR ALLIANCE',EK:'',QR:'ONEWORLD',
+  NH:'STAR ALLIANCE',JL:'ONEWORLD',KE:'SKY TEAM',AA:'ONEWORLD',DL:'SKY TEAM',
+  UA:'STAR ALLIANCE',BA:'ONEWORLD',AF:'SKY TEAM',LH:'STAR ALLIANCE',TG:'STAR ALLIANCE'};
+
+const AIRLINES=[
+  // 国内
+  {code:'CA',name:'中国国际航空',en:'AIR CHINA',group:'cn',h1:'#C0282D',h2:'#8B1519',acc:'#D4AF37',txt:'#fff'},
+  {code:'MU',name:'中国东方航空',en:'CHINA EASTERN',group:'cn',h1:'#1C3F8F',h2:'#0C2160',acc:'#E5002B',txt:'#fff'},
+  {code:'CZ',name:'中国南方航空',en:'CHINA SOUTHERN',group:'cn',h1:'#1262A8',h2:'#064480',acc:'#FFD700',txt:'#fff'},
+  {code:'HU',name:'海南航空',en:'HAINAN AIRLINES',group:'cn',h1:'#C8102E',h2:'#7E0A1E',acc:'#D4AF37',txt:'#fff'},
+  {code:'MF',name:'厦门航空',en:'XIAMEN AIR',group:'cn',h1:'#003893',h2:'#001E5C',acc:'#E60012',txt:'#fff'},
+  {code:'ZH',name:'深圳航空',en:'SHENZHEN AIRLINES',group:'cn',h1:'#C8102E',h2:'#7E0A1E',acc:'#FFD700',txt:'#fff'},
+  {code:'3U',name:'四川航空',en:'SICHUAN AIRLINES',group:'cn',h1:'#003DA5',h2:'#001C60',acc:'#E94F2A',txt:'#fff'},
+  {code:'9C',name:'春秋航空',en:'SPRING AIRLINES',group:'cn',h1:'#FF5500',h2:'#CC2200',acc:'#FFCC00',txt:'#fff'},
+  {code:'HO',name:'吉祥航空',en:'JUNEYAO AIRLINES',group:'cn',h1:'#B8001C',h2:'#6A000F',acc:'#FFD700',txt:'#fff'},
+  {code:'GS',name:'天津航空',en:'TIANJIN AIRLINES',group:'cn',h1:'#0066B3',h2:'#003870',acc:'#E60012',txt:'#fff'},
+  // 国际
+  {code:'CX',name:'国泰航空',en:'CATHAY PACIFIC',group:'intl',h1:'#006564',h2:'#003838',acc:'#4CAF50',txt:'#fff'},
+  {code:'SQ',name:'新加坡航空',en:'SINGAPORE AIRLINES',group:'intl',h1:'#0032A0',h2:'#001866',acc:'#F4C200',txt:'#fff'},
+  {code:'EK',name:'阿联酋航空',en:'EMIRATES',group:'intl',h1:'#C8102E',h2:'#7A081C',acc:'#B8860B',txt:'#fff'},
+  {code:'QR',name:'卡塔尔航空',en:'QATAR AIRWAYS',group:'intl',h1:'#5C0632',h2:'#2E0319',acc:'#C9A84C',txt:'#fff'},
+  {code:'NH',name:'全日空',en:'ANA',group:'intl',h1:'#003087',h2:'#001454',acc:'#00A0E9',txt:'#fff'},
+  {code:'JL',name:'日本航空',en:'JAPAN AIRLINES',group:'intl',h1:'#1A1A1A',h2:'#000',acc:'#E50012',txt:'#fff'},
+  {code:'KE',name:'大韩航空',en:'KOREAN AIR',group:'intl',h1:'#003087',h2:'#001454',acc:'#E30022',txt:'#fff'},
+  {code:'AA',name:'美国航空',en:'AMERICAN AIRLINES',group:'intl',h1:'#0078D2',h2:'#003F8C',acc:'#D50032',txt:'#fff'},
+  {code:'DL',name:'达美航空',en:'DELTA AIR LINES',group:'intl',h1:'#003366',h2:'#001433',acc:'#E01B22',txt:'#fff'},
+  {code:'UA',name:'美国联合航空',en:'UNITED AIRLINES',group:'intl',h1:'#0047BB',h2:'#001F6B',acc:'#72B8FF',txt:'#fff'},
+  {code:'BA',name:'英国航空',en:'BRITISH AIRWAYS',group:'intl',h1:'#2B5EAB',h2:'#12306A',acc:'#EB2226',txt:'#fff'},
+  {code:'AF',name:'法国航空',en:'AIR FRANCE',group:'intl',h1:'#002157',h2:'#000E30',acc:'#CB0A0C',txt:'#fff'},
+  {code:'LH',name:'汉莎航空',en:'LUFTHANSA',group:'intl',h1:'#05164D',h2:'#020A28',acc:'#F9BA00',txt:'#fff'},
+  {code:'TG',name:'泰国国际航空',en:'THAI AIRWAYS',group:'intl',h1:'#4B2B82',h2:'#221248',acc:'#F7CC00',txt:'#fff'},
+];
+
+const CLASS_CN={Y:'经济舱',W:'超级经济舱',C:'公务舱',F:'头等舱'};
+const CLASS_EN={Y:'ECONOMY CLASS',W:'PREMIUM ECONOMY',C:'BUSINESS CLASS',F:'FIRST CLASS'};
+const CLASS_LABEL={Y:'ECONOMY',W:'PREMIUM ECO',C:'BUSINESS',F:'FIRST'};
+
+// ═══════════ CANVAS DIMENSIONS ═══════════
+const W=1140, H=480, STUB_X=855;
+const HEAD_H=64, WARN_H=40;
+
+let currentAirline=AIRLINES[0];
+
+// ═══════════ QR CODE DRAWER ═══════════
+function drawQR(ctx,x,y,sz,data){
+  const N=25, cs=sz/N;
+  ctx.fillStyle='#fff'; ctx.fillRect(x-2,y-2,sz+4,sz+4);
+  let h=0;
+  for(let i=0;i<data.length;i++) h=Math.imul(31,h)+data.charCodeAt(i)|0;
+  const bit=(r,c)=>{let s=h^(r*1000003)^(c*999983);s=Math.imul(s^(s>>>16),0x45d9f3b)|0;return(s^(s>>>16))&1;};
+  ctx.fillStyle='#111';
+  // Finder patterns: top-left, top-right, bottom-left
+  const fp=(ctx,ox,oy)=>{
+    ctx.fillStyle='#111';
+    ctx.fillRect(ox,oy,7*cs,7*cs);
+    ctx.fillStyle='#fff';
+    ctx.fillRect(ox+cs,oy+cs,5*cs,5*cs);
+    ctx.fillStyle='#111';
+    ctx.fillRect(ox+2*cs,oy+2*cs,3*cs,3*cs);
+  };
+  fp(ctx,x,y); fp(ctx,x+(N-7)*cs,y); fp(ctx,x,y+(N-7)*cs);
+  // Data
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++){
+    const tl=r<8&&c<8, tr=r<8&&c>=N-8, bl=r>=N-8&&c<8;
+    if(tl||tr||bl) continue;
+    if(bit(r,c)){ctx.fillStyle='#111';ctx.fillRect(x+c*cs+.5,y+r*cs+.5,cs-1,cs-1);}
+  }
+  ctx.strokeStyle='#ddd';ctx.lineWidth=1;ctx.strokeRect(x-2,y-2,sz+4,sz+4);
+}
+
+// ═══════════ BARCODE DRAWER ═══════════
+function drawBarcode(ctx,x,y,w,h,seed,color){
+  let n=typeof seed==='string'?seed.split('').reduce((a,c)=>(a*31+c.charCodeAt(0))|0,5381):seed;
+  const bars=100, bw=w/bars;
+  ctx.fillStyle=color||'#222';
+  for(let i=0;i<bars;i++){
+    n=(n*1664525+1013904223)>>>0;
+    if(n%3!==0) ctx.fillRect(x+i*bw,y,bw*.85,h);
+  }
+}
+
+// ═══════════ ROUND RECT ═══════════
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+}
+
+// ═══════════ LOGO DRAWER ═══════════
+const _logoCache={};
+function drawLogo(ctx,code,x,y,size){
+  const svg=LOGOS[code];
+  if(!svg) return;
+  const key=code+'_'+size;
+  if(!_logoCache[key]){
+    const img=new Image();
+    const blob=new Blob([`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44" width="${size}" height="${size}">${svg.replace(/<svg[^>]*>/,'')}`],{type:'image/svg+xml'});
+    img.src=URL.createObjectURL(blob);
+    _logoCache[key]=img;
+  }
+  try{ctx.drawImage(_logoCache[key],x,y,size,size);}catch(e){}
+}
+
+// ═══════════ MAIN DRAW ═══════════
+function drawBoardingPass(canvas,scale=1){
+  const a=currentAirline;
+  const d=getData();
+  const fr=AIRPORTS.find(x=>x.c===d.from)||{c:d.from,cn:d.from,en:d.from};
+  const to=AIRPORTS.find(x=>x.c===d.to)||{c:d.to,cn:d.to,en:d.to};
+  const ds=fmtDate(d.date);
+  const cabinCn=CLASS_CN[d.cabin]||d.cabin;
+  const cabinEn=CLASS_EN[d.cabin]||d.cabin;
+  const cabinLabel=CLASS_LABEL[d.cabin]||d.cabin;
+  const alliance=ALLIANCES[a.code]||'';
+
+  canvas.width=W*scale; canvas.height=H*scale;
+  const ctx=canvas.getContext('2d');
+  ctx.scale(scale,scale);
+
+  // clip to rounded rect
+  ctx.save();
+  roundRect(ctx,0,0,W,H,14); ctx.clip();
+
+  // === WHITE BACKGROUND ===
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+
+  // === HEADER STRIP (airline color) ===
+  // Main portion header
+  const hg=ctx.createLinearGradient(0,0,STUB_X,0);
+  hg.addColorStop(0,a.h1); hg.addColorStop(1,a.h2);
+  ctx.fillStyle=hg; ctx.fillRect(0,0,STUB_X,HEAD_H);
+
+  // Class badge box (right side of main header)
+  const CLS_W=220;
+  ctx.fillStyle=a.acc;
+  ctx.fillRect(STUB_X-CLS_W,0,CLS_W,HEAD_H);
+  ctx.fillStyle='rgba(0,0,0,0.12)'; ctx.fillRect(STUB_X-CLS_W,0,CLS_W,HEAD_H); // depth
+  ctx.fillStyle='#fff';
+  ctx.font=`900 18px Nunito,Arial`; ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText(cabinEn, STUB_X-CLS_W/2, HEAD_H*0.15);
+  ctx.font=`700 12px Nunito,Arial`; ctx.fillStyle='rgba(255,255,255,0.9)';
+  ctx.fillText(cabinCn, STUB_X-CLS_W/2, HEAD_H*0.58);
+
+  // Stub header
+  const shg=ctx.createLinearGradient(STUB_X,0,W,0);
+  shg.addColorStop(0,a.h2); shg.addColorStop(1,a.h1);
+  ctx.fillStyle=shg; ctx.fillRect(STUB_X,0,W-STUB_X,HEAD_H);
+  // Stub class label
+  const scx=STUB_X+(W-STUB_X)/2;
+  ctx.fillStyle='#fff'; ctx.font=`800 12px Nunito,Arial`; ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText(cabinEn, scx, 10);
+  ctx.font=`600 10px Nunito,Arial`; ctx.fillStyle='rgba(255,255,255,0.85)';
+  ctx.fillText(cabinCn, scx, 28);
+  ctx.font=`500 8px Nunito,Arial`; ctx.fillStyle='rgba(255,255,255,0.6)';
+  ctx.fillText('登机牌', scx, 47);
+  ctx.textAlign='left';
+
+  // Logo in header
+  drawLogo(ctx, a.code, 20, (HEAD_H-40)/2, 40);
+
+  // Airline name in header
+  ctx.fillStyle='rgba(255,255,255,0.95)'; ctx.font=`800 14px Nunito,Arial`; ctx.textBaseline='top';
+  ctx.fillText(a.name, 68, 11);
+  ctx.fillStyle='rgba(255,255,255,0.65)'; ctx.font=`500 9px Arial`;
+  ctx.fillText(a.en.toUpperCase(), 68, 30);
+  if(alliance){
+    ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font=`600 8px Nunito,Arial`;
+    ctx.fillText('★  '+alliance+' MEMBER', 68, 47);
+  }
+
+  // === DIVIDER (perforated) ===
+  ctx.fillStyle='#f3f4f6';
+  ctx.beginPath(); ctx.arc(STUB_X,0,12,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(STUB_X,H,12,0,Math.PI*2); ctx.fill();
+  ctx.save(); ctx.setLineDash([8,5]); ctx.strokeStyle='#ccc'; ctx.lineWidth=1.2;
+  ctx.beginPath(); ctx.moveTo(STUB_X,14); ctx.lineTo(STUB_X,H-14); ctx.stroke();
+  ctx.setLineDash([]); ctx.restore();
+
+  // === BOTTOM WARNING STRIP ===
+  const wg=ctx.createLinearGradient(0,0,STUB_X,0);
+  wg.addColorStop(0,a.h1); wg.addColorStop(1,a.h2);
+  ctx.fillStyle=wg; ctx.fillRect(0,H-WARN_H,STUB_X,WARN_H);
+  ctx.fillStyle=a.h2; ctx.fillRect(STUB_X,H-WARN_H,W-STUB_X,WARN_H);
+  ctx.fillStyle='rgba(255,255,255,0.92)'; ctx.font=`700 8.5px Nunito,Arial`; ctx.textBaseline='middle';
+  ctx.fillText('重要提示：航班起飞前15分钟关闭登机闸口  GATES CLOSED 15 MINUTES BEFORE DEPARTURE', 20, H-WARN_H/2);
+  ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.font=`500 7.5px Arial`; ctx.textAlign='right';
+  ctx.fillText('请勿携带危险品登机  NO DANGEROUS GOODS ALLOWED', STUB_X-14, H-WARN_H/2);
+  ctx.textAlign='left';
+  ctx.fillStyle='rgba(255,255,255,0.8)'; ctx.font=`600 7.5px Nunito,Arial`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('重要提示：起飞前15分钟关闭登机闸口', scx, H-WARN_H/2-5);
+  ctx.font=`500 7px Arial`;
+  ctx.fillText('GATES CLOSED 15 MIN BEFORE DEP.', scx, H-WARN_H/2+7);
+  ctx.textAlign='left';
+
+  // === CONTENT AREA ===
+  const PAD=20;
+  const cY=HEAD_H+10; // content start y
+
+  // ── A. PASSENGER + FLIGHT ROW ──
+  // Labels (small gray)
+  ctx.fillStyle='#999'; ctx.font=`500 8px Nunito,Arial`; ctx.textBaseline='top';
+  ctx.fillText('姓名 NAME', PAD, cY);
+  ctx.fillText('航班号 FLIGHT NO.', PAD+210, cY);
+  ctx.fillText('舱位 CLASS', PAD+380, cY);
+
+  // Chinese name (large)
+  ctx.fillStyle='#111'; ctx.font=`700 22px "PingFang SC","Microsoft YaHei",sans-serif`;
+  ctx.textBaseline='top'; ctx.fillText(d.nameCn||'张三', PAD, cY+10);
+  // English name (small below)
+  ctx.fillStyle='#555'; ctx.font=`500 9px Arial`;
+  ctx.fillText(d.nameEn, PAD, cY+37);
+
+  // Flight number (large)
+  ctx.fillStyle='#111'; ctx.font=`900 24px Arial`; ctx.textBaseline='top';
+  ctx.fillText(d.flightNum, PAD+210, cY+8);
+
+  // Cabin code (large)
+  ctx.fillText(d.cabin, PAD+380, cY+8);
+
+  // Thin separator
+  ctx.strokeStyle='#e5e7eb'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(PAD,cY+52); ctx.lineTo(STUB_X-PAD,cY+52); ctx.stroke();
+
+  // ── B. ROUTE ROW ── (FROM left-aligned, TO right-aligned, arrow centered)
+  const rY=cY+58;
+  const cFS=68;
+  const midX=STUB_X/2; // true center of main section
+
+  // Measure code widths for line positioning
+  ctx.font=`900 ${cFS}px Arial`;
+  const frW=ctx.measureText(fr.c).width;
+  const toW=ctx.measureText(to.c).width;
+
+  // FROM — left edge
+  ctx.fillStyle='#111'; ctx.textBaseline='alphabetic'; ctx.textAlign='left';
+  ctx.fillText(fr.c, PAD, rY+cFS);
+  ctx.fillStyle='#444'; ctx.font=`600 10px "PingFang SC","Microsoft YaHei",Arial`; ctx.textBaseline='top';
+  ctx.fillText(fr.cn, PAD, rY+cFS+5);
+  ctx.fillStyle='#888'; ctx.font=`400 9px Arial`;
+  ctx.fillText(fr.en.toUpperCase(), PAD, rY+cFS+20);
+
+  // TO — right-aligned to just before QR code (qrX = STUB_X-96-PAD = 739)
+  const toRight = STUB_X - 96 - PAD - 12; // 727, stays clear of QR code
+  ctx.fillStyle='#111'; ctx.font=`900 ${cFS}px Arial`; ctx.textBaseline='alphabetic'; ctx.textAlign='right';
+  ctx.fillText(to.c, toRight, rY+cFS);
+  ctx.fillStyle='#444'; ctx.font=`600 10px "PingFang SC","Microsoft YaHei",Arial`; ctx.textBaseline='top';
+  ctx.fillText(to.cn, toRight, rY+cFS+5);
+  ctx.fillStyle='#888'; ctx.font=`400 9px Arial`;
+  ctx.fillText(to.en.toUpperCase(), toRight, rY+cFS+20);
+  ctx.textAlign='left';
+
+  // Arrow ✈ — true center, dashed lines within safe zone
+  ctx.save();
+  ctx.strokeStyle=a.h1; ctx.lineWidth=1.5; ctx.setLineDash([6,5]);
+  ctx.beginPath(); ctx.moveTo(PAD+frW+12, rY+cFS/2); ctx.lineTo(midX-22, rY+cFS/2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(midX+22,    rY+cFS/2); ctx.lineTo(toRight-toW-12, rY+cFS/2); ctx.stroke();
+  ctx.restore();
+  ctx.fillStyle=a.h1; ctx.font=`700 22px Arial`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('✈', midX, rY+cFS/2);
+  ctx.textAlign='left';
+
+  // ── C. INFO GRID + QR ──
+  const infoY=rY+cFS+36;
+
+  // QR code dimensions (define first so we can compute available grid width)
+  const qrSz=96, qrX=STUB_X-qrSz-PAD, qrY=infoY-4;
+
+  // 5 equal columns across the full available width (PAD → qrX-gap)
+  const infoW=qrX-PAD-16;
+  const COL=infoW/5;
+  const C=[PAD, PAD+COL, PAD+COL*2, PAD+COL*3, PAD+COL*4];
+
+  const LABEL_STYLE=()=>{ctx.fillStyle='#999';ctx.font=`500 8px Nunito,Arial`;ctx.textBaseline='top';};
+  const VALUE_STYLE=()=>{ctx.fillStyle='#111';ctx.font=`800 14px Arial`;ctx.textBaseline='top';};
+  const VALUE_LG=()=>{ctx.fillStyle=a.acc;ctx.font=`900 26px Arial`;ctx.textBaseline='top';};
+
+  const ROW_H=20;
+
+  // Row 1: 日期 | 起飞 | 到达 | 登机 | 登机口★
+  LABEL_STYLE(); ctx.fillText('日期 DATE',    C[0], infoY);
+  VALUE_STYLE(); ctx.fillText(ds,             C[0], infoY+ROW_H-4);
+
+  LABEL_STYLE(); ctx.fillText('起飞 DEP',     C[1], infoY);
+  VALUE_STYLE(); ctx.fillText(d.dep,          C[1], infoY+ROW_H-4);
+
+  LABEL_STYLE(); ctx.fillText('到达 ARR',     C[2], infoY);
+  VALUE_STYLE(); ctx.fillText(d.arr,          C[2], infoY+ROW_H-4);
+
+  LABEL_STYLE(); ctx.fillText('登机 BOARD',   C[3], infoY);
+  VALUE_STYLE(); ctx.fillText(d.board,        C[3], infoY+ROW_H-4);
+
+  LABEL_STYLE(); ctx.fillText('登机口 GATE',  C[4], infoY);
+  VALUE_LG();    ctx.fillText(d.gate,         C[4], infoY+ROW_H-8);
+
+  // Row 2: 座位★(C[0]-C[1]) | 序号(C[2]) | 出发航站楼(C[3]) | 到达航站楼(C[4])
+  const r2Y=infoY+50;
+  LABEL_STYLE(); ctx.fillText('座位号 SEAT NO.',      C[0], r2Y);
+  VALUE_LG();    ctx.fillText(d.seat,                 C[0], r2Y+ROW_H-8);
+
+  LABEL_STYLE(); ctx.fillText('序号 BD NO.',           C[2], r2Y);
+  VALUE_STYLE(); ctx.fillText(d.seq,                  C[2], r2Y+ROW_H-4);
+
+  LABEL_STYLE(); ctx.fillText('出发航站楼 TERM.',      C[3], r2Y);
+  VALUE_STYLE(); ctx.fillText(d.depTerm,              C[3], r2Y+ROW_H-4);
+
+  LABEL_STYLE(); ctx.fillText('到达航站楼 ARR TERM.',  C[4], r2Y);
+  VALUE_STYLE(); ctx.fillText(d.arrTerm,              C[4], r2Y+ROW_H-4);
+
+  // QR CODE
+  drawQR(ctx,qrX,qrY,qrSz,d.pnr+d.seat+d.seq+d.flightNum);
+  ctx.fillStyle='#999'; ctx.font=`500 7.5px Nunito,Arial`; ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText('扫码登机',     qrX+qrSz/2, qrY+qrSz+4);
+  ctx.fillText('SCAN TO BOARD',qrX+qrSz/2, qrY+qrSz+15);
+  ctx.fillStyle=a.h1; ctx.font=`500 7px Nunito,Arial`;
+  ctx.fillText('登机口可能变更', qrX+qrSz/2, qrY+qrSz+28);
+  ctx.fillText('请注意广播',    qrX+qrSz/2, qrY+qrSz+39);
+  ctx.textAlign='left';
+
+  // Content separator
+  const sepY=r2Y+50;
+  ctx.strokeStyle='#e5e7eb'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(PAD,sepY); ctx.lineTo(STUB_X-PAD,sepY); ctx.stroke();
+
+  // ── D. BARCODE ──
+  // 宽度截止于 QR 码左侧，不遮挡 QR 区域
+  const bcY=sepY+8;
+  const bcH=H-WARN_H-bcY-20;
+  const bcW=qrX-PAD-14; // stop before QR code
+  drawBarcode(ctx,PAD,bcY,bcW,Math.max(bcH,28),d.nameEn+fr.c+to.c+d.flightNum,'#333');
+  ctx.fillStyle='#888'; ctx.font=`500 8px monospace`; ctx.textBaseline='bottom';
+  ctx.fillText(`ETKT  ${d.etkt}  /  1`, PAD, H-WARN_H-4);
+
+  // ═══════════ STUB SECTION ═══════════
+  ctx.restore(); // end clip
+  ctx.save();
+  roundRect(ctx,0,0,W,H,14); ctx.clip();
+
+  const sx=STUB_X+14, sw=W-STUB_X-28;
+
+  // ── Stub name ──
+  const snY=HEAD_H+10;
+  ctx.fillStyle='#999'; ctx.font=`500 8px Nunito,Arial`; ctx.textBaseline='top';
+  ctx.fillText('姓名 NAME', sx, snY);
+  ctx.fillStyle='#111'; ctx.font=`700 13px "PingFang SC","Microsoft YaHei",Arial`; ctx.textBaseline='top';
+  ctx.fillText((d.nameCn||'张三')+' / '+d.nameEn, sx, snY+10);
+
+  // ── Stub flight + class ──
+  const sfY=snY+30;
+  ctx.strokeStyle='#f0f0f0'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(sx,sfY); ctx.lineTo(W-14,sfY); ctx.stroke();
+  const sfY2=sfY+8;
+  ctx.fillStyle='#999'; ctx.font=`500 8px Nunito,Arial`; ctx.textBaseline='top';
+  ctx.fillText('航班号 FLIGHT NO.', sx, sfY2);
+  ctx.fillText('舱位 CLASS', sx+sw*0.55, sfY2);
+  ctx.fillStyle='#111'; ctx.font=`900 16px Arial`;
+  ctx.fillText(d.flightNum, sx, sfY2+12);
+  ctx.fillText(d.cabin, sx+sw*0.55, sfY2+12);
+
+  // ── Stub seat/date (large, accent) ──
+  const sdY=sfY2+36;
+  ctx.strokeStyle='#f0f0f0'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(sx,sdY); ctx.lineTo(W-14,sdY); ctx.stroke();
+  const sdY2=sdY+8;
+  ctx.fillStyle='#999'; ctx.font=`500 8px Nunito,Arial`; ctx.textBaseline='top';
+  ctx.fillText('座位号 SEAT / 日期 DATE', sx, sdY2);
+  ctx.fillStyle=a.acc; ctx.font=`900 22px Arial`;
+  ctx.fillText(`${d.seat} / ${ds}`, sx, sdY2+12);
+
+  // ── Stub seq + gate ──
+  const sgY=sdY2+42;
+  ctx.strokeStyle='#f0f0f0'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(sx,sgY); ctx.lineTo(W-14,sgY); ctx.stroke();
+  const sgY2=sgY+8;
+  ctx.fillStyle='#999'; ctx.font=`500 8px Nunito,Arial`; ctx.textBaseline='top';
+  ctx.fillText('序号 BD NO.', sx, sgY2);
+  ctx.fillText('登机口 GATE', sx+sw*0.52, sgY2);
+  ctx.fillStyle='#111'; ctx.font=`900 18px Arial`;
+  ctx.fillText(d.seq, sx, sgY2+12);
+  ctx.fillStyle=a.acc; ctx.font=`900 20px Arial`;
+  ctx.fillText(d.gate, sx+sw*0.52, sgY2+11);
+
+  // ── Stub from/to ──
+  const stY=sgY2+40;
+  ctx.strokeStyle='#f0f0f0'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(sx,stY); ctx.lineTo(W-14,stY); ctx.stroke();
+  const stY2=stY+6;
+  ctx.fillStyle='#999'; ctx.font=`500 8px Nunito,Arial`; ctx.textBaseline='top';
+  ctx.fillText('出发 FROM', sx, stY2);
+  ctx.fillStyle='#111'; ctx.font=`600 11px "PingFang SC","Microsoft YaHei",Arial`;
+  ctx.fillText(`${fr.cn}  ${fr.c} ${d.depTerm}`, sx, stY2+12);
+  ctx.fillStyle='#999'; ctx.font=`500 8px Nunito,Arial`;
+  ctx.fillText('到达 TO', sx, stY2+30);
+  ctx.fillStyle='#111'; ctx.font=`600 11px "PingFang SC","Microsoft YaHei",Arial`;
+  ctx.fillText(`${to.cn}  ${to.c} ${d.arrTerm}`, sx, stY2+42);
+
+  // ── Stub barcode ──
+  const sbcY=stY2+62;
+  const sbcH=H-WARN_H-sbcY-18;
+  if(sbcH>20) drawBarcode(ctx,sx,sbcY,sw,Math.max(sbcH,22),d.etkt+d.seat,'#333');
+  ctx.fillStyle='#888'; ctx.font=`500 7px monospace`; ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillText(d.etkt, scx, H-WARN_H-4);
+  ctx.textAlign='left';
+
+  ctx.restore();
+}
+
+// ═══════════ DATA ═══════════
+function getData(){
+  return{
+    nameCn: document.getElementById('nameCn').value||'张三',
+    nameEn: document.getElementById('nameEn').value||'ZHANG/SAN',
+    from: document.getElementById('fromCity').value||'PEK',
+    to: document.getElementById('toCity').value||'PVG',
+    flightNum: document.getElementById('flightNum').value||'CA1234',
+    date: document.getElementById('flightDate').value,
+    dep: document.getElementById('depTime').value||'10:30',
+    arr: document.getElementById('arrTime').value||'13:45',
+    board: document.getElementById('boardTime').value||'10:00',
+    gate: document.getElementById('gate').value||'B12',
+    seat: document.getElementById('seat').value||'23F',
+    seq: document.getElementById('seq').value||'077',
+    cabin: document.getElementById('cabin').value||'Y',
+    pnr: document.getElementById('pnr').value||'ABC123',
+    etkt: document.getElementById('etkt').value||'7315408591787',
+    depTerm: document.getElementById('depTerm').value||'T2',
+    arrTerm: document.getElementById('arrTerm').value||'T2',
+  };
+}
+
+function fmtDate(s){
+  const M=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const d=s?new Date(s):new Date();
+  return String(d.getDate()).padStart(2,'0')+M[d.getMonth()];
+}
+
+// ═══════════ RENDER ═══════════
+let _rt=null;
+function scheduleRender(){clearTimeout(_rt);_rt=setTimeout(()=>drawBoardingPass(document.getElementById('bpCanvas'),2),50);}
+
+// ═══════════ DOWNLOAD ═══════════
+async function downloadPass(){
+  const btn=document.getElementById('dlBtn');
+  btn.disabled=true; btn.textContent='生成中...';
+  try{
+    const c=document.createElement('canvas');
+    drawBoardingPass(c,3);
+    const d=getData();
+    const a=document.createElement('a');
+    a.download=`boarding-pass-${currentAirline.code}-${d.flightNum}-${d.seat}.png`;
+    a.href=c.toDataURL('image/png');
+    a.click();
+  }finally{btn.disabled=false;btn.innerHTML='⬇ 下载高清 PNG';}
+}
+
+function saveHtml(){
+  const html=document.documentElement.outerHTML;
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='boarding-pass-generator.html';
+  a.click();
+}
+
+// ═══════════ FULLSCREEN ═══════════
+function openFull(){
+  const ov=document.getElementById('fsOverlay');
+  drawBoardingPass(document.getElementById('fsCanvas'),2);
+  ov.style.display='flex';
+}
+function closeFull(){document.getElementById('fsOverlay').style.display='none';}
+
+// ═══════════ RANDOMIZE ═══════════
+const CN_NAMES=['张三','李明','王芳','刘洋','陈磊','黄君','吴昊','赵宇','周鑫','徐兰','孙伟','马超'];
+const EN_NAMES=['ZHANG/SAN','LI/MING','WANG/FANG','LIU/YANG','CHEN/LEI','HUANG/JUN','WU/HAO','ZHAO/YU'];
+const GATES=['A01','A12','B03','B22','C14','D07','D31','E02','F18','G09','H15','D62'];
+const SEATS=['12A','12F','23B','30C','4A','8E','41D','55F','2B','19C','7D','23F'];
+const TERMS=['T1','T2','T3','T4'];
+function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function rp(arr){return arr[ri(0,arr.length-1)];}
+function randomize(){
+  const ai=AIRLINES[ri(0,AIRLINES.length-1)];
+  currentAirline=ai;
+  document.querySelectorAll('.atab').forEach((b,i)=>b.classList.toggle('active',AIRLINES[i]===ai));
+  const apts=AIRPORTS.filter(x=>x.c);
+  let fr=rp(apts),to=rp(apts);
+  while(to.c===fr.c) to=rp(apts);
+  const dep=`${String(ri(6,22)).padStart(2,'0')}:${String(ri(0,11)*5).padStart(2,'0')}`;
+  const nd=new Date(); nd.setDate(nd.getDate()+ri(1,180));
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const pnr=Array.from({length:6},()=>chars[ri(0,chars.length-1)]).join('');
+  const etkt=Array.from({length:13},()=>ri(0,9)).join('');
+  const idx=ri(0,CN_NAMES.length-1);
+  document.getElementById('nameCn').value=CN_NAMES[idx];
+  document.getElementById('nameEn').value=EN_NAMES[idx]||EN_NAMES[0];
+  document.getElementById('fromCity').value=fr.c;
+  document.getElementById('toCity').value=to.c;
+  document.getElementById('flightNum').value=ai.code+ri(100,9999);
+  document.getElementById('flightDate').value=nd.toISOString().slice(0,10);
+  document.getElementById('depTime').value=dep;
+  const arrH=parseInt(dep)+ri(1,4), arrM=ri(0,11)*5;
+  document.getElementById('arrTime').value=`${String(arrH%24).padStart(2,'0')}:${String(arrM).padStart(2,'0')}`;
+  const bm=parseInt(dep.split(':')[1])-30;
+  document.getElementById('boardTime').value=`${String(parseInt(dep)-1<6?6:parseInt(dep)).padStart(2,'0')}:${String(bm<0?bm+60:bm).padStart(2,'0')}`;
+  document.getElementById('gate').value=rp(GATES);
+  document.getElementById('seat').value=rp(SEATS);
+  document.getElementById('seq').value=String(ri(1,999)).padStart(3,'0');
+  document.getElementById('cabin').value=rp(['Y','Y','Y','W','C','F']);
+  document.getElementById('pnr').value=pnr;
+  document.getElementById('etkt').value=etkt;
+  document.getElementById('depTerm').value=rp(TERMS);
+  document.getElementById('arrTerm').value=rp(TERMS);
+  scheduleRender();
+}
+
+// ═══════════ INIT ═══════════
+function initGrid(){
+  const el=document.getElementById('airlineGrid');
+  let lastGrp='';
+  AIRLINES.forEach((a,i)=>{
+    if(a.group!==lastGrp){
+      const d=document.createElement('div');
+      d.className='group-label';
+      d.textContent=a.group==='cn'?'🇨🇳 国内':'🌍 国际';
+      el.appendChild(d); lastGrp=a.group;
+    }
+    const btn=document.createElement('button');
+    btn.className='atab'+(i===0?' active':'');
+    btn.innerHTML=`<span class="code">${a.code}</span>${a.name.length<=4?a.name:a.en.split(' ')[0]}`;
+    btn.onclick=()=>{
+      document.querySelectorAll('.atab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); currentAirline=a; scheduleRender();
+    };
+    el.appendChild(btn);
+  });
+}
+
+function initAirports(){
+  const f=document.getElementById('fromCity'), t=document.getElementById('toCity');
+  AIRPORTS.forEach(a=>{f.add(new Option(`${a.c} · ${a.cn}`,a.c));t.add(new Option(`${a.c} · ${a.cn}`,a.c));});
+  f.value='PEK'; t.value='SZX';
+  f.onchange=scheduleRender; t.onchange=scheduleRender;
+}
+
+['nameCn','nameEn','flightNum','flightDate','depTime','arrTime','boardTime','gate','seat','seq','cabin','pnr','etkt','depTerm','arrTerm']
+  .forEach(id=>document.getElementById(id).addEventListener('input',scheduleRender));
+
+document.getElementById('flightDate').valueAsDate=new Date(Date.now()+86400000*3);
+initGrid(); initAirports();
+
+// Pre-load logos then render
+setTimeout(()=>{
+  AIRLINES.forEach(a=>{const s=40;drawLogo({drawImage:()=>{}},a.code,0,0,s);});
+  scheduleRender();
+},100);
+</script>
+</body>
+</html>
