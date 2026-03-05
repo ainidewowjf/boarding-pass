@@ -419,7 +419,7 @@ function drawBoardingPass(canvas,scale=1){
 
   // ── A. PASSENGER + FLIGHT ROW ──
   // Labels (small gray)
-  ctx.fillStyle='#6C7B8B'; ctx.font=`900 11px Nunito,Arial`; ctx.textBaseline='top';
+  ctx.fillStyle='#000080'; ctx.font=`900 11px Nunito,Arial`; ctx.textBaseline='top';
   ctx.fillText('姓名 NAME', PAD, cY);
   ctx.fillText('航班号 FLIGHT NO.', PAD+210, cY);
   ctx.fillText('舱位 CLASS', PAD+380, cY);
@@ -428,7 +428,7 @@ function drawBoardingPass(canvas,scale=1){
   ctx.fillStyle='#111'; ctx.font=`700 22px "PingFang SC","Microsoft YaHei",sans-serif`;
   ctx.textBaseline='top'; ctx.fillText(d.nameCn||'张三', PAD, cY+10);
   // English name (small below)
-  ctx.fillStyle='#6C7B8B'; ctx.font=`900 11px Arial`;
+  ctx.fillStyle='#000080'; ctx.font=`900 11px Arial`;
   ctx.fillText(d.nameEn, PAD, cY+37);
 
   // Flight number (large)
@@ -455,7 +455,7 @@ function drawBoardingPass(canvas,scale=1){
   // FROM — left edge
   ctx.fillStyle='#111'; ctx.textBaseline='alphabetic'; ctx.textAlign='left';
   ctx.fillText(fr.c, PAD, rY+cFS);
-  ctx.fillStyle='#6C7B8B'; ctx.font=`900 10px "PingFang SC","Microsoft YaHei",Arial`; ctx.textBaseline='top';
+  ctx.fillStyle='#000080'; ctx.font=`900 10px "PingFang SC","Microsoft YaHei",Arial`; ctx.textBaseline='top';
   ctx.fillText(fr.cn, PAD, rY+cFS+5);
   ctx.fillStyle='#111'; ctx.font=`900 9px Arial`;
   ctx.fillText(fr.en.toUpperCase(), PAD, rY+cFS+20);
@@ -464,7 +464,7 @@ function drawBoardingPass(canvas,scale=1){
   const toRight = STUB_X - 96 - PAD - 12; // 727, stays clear of QR code
   ctx.fillStyle='#111'; ctx.font=`900 ${cFS}px Arial`; ctx.textBaseline='alphabetic'; ctx.textAlign='right';
   ctx.fillText(to.c, toRight, rY+cFS);
-  ctx.fillStyle='#6C7B8B'; ctx.font=`900 10px "PingFang SC","Microsoft YaHei",Arial`; ctx.textBaseline='top';
+  ctx.fillStyle='#000080'; ctx.font=`900 10px "PingFang SC","Microsoft YaHei",Arial`; ctx.textBaseline='top';
   ctx.fillText(to.cn, toRight, rY+cFS+5);
   ctx.fillStyle='#111'; ctx.font=`900 9px Arial`;
   ctx.fillText(to.en.toUpperCase(), toRight, rY+cFS+20);
@@ -491,7 +491,7 @@ function drawBoardingPass(canvas,scale=1){
   const COL=infoW/5;
   const C=[PAD, PAD+COL, PAD+COL*2, PAD+COL*3, PAD+COL*4];
 
-  const LABEL_STYLE=()=>{ctx.fillStyle='#6C7B8B';ctx.font=`900 10px Nunito,Arial`;ctx.textBaseline='top';};
+  const LABEL_STYLE=()=>{ctx.fillStyle='#000080';ctx.font=`900 10px Nunito,Arial`;ctx.textBaseline='top';};
   const VALUE_STYLE=()=>{ctx.fillStyle='#111';ctx.font=`800 14px Arial`;ctx.textBaseline='top';};
   const VALUE_LG=()=>{ctx.fillStyle=a.acc;ctx.font=`900 26px Arial`;ctx.textBaseline='top';};
 
@@ -560,7 +560,7 @@ function drawBoardingPass(canvas,scale=1){
 
   // ── Stub name ──
   const snY=HEAD_H+10;
-  ctx.fillStyle='#6C7B8B'; ctx.font=`900 11px Nunito,Arial`; ctx.textBaseline='top';
+  ctx.fillStyle='#000080'; ctx.font=`900 11px Nunito,Arial`; ctx.textBaseline='top';
   ctx.fillText('姓名 NAME', sx, snY);
   ctx.fillStyle='#111'; ctx.font=`900 13px "PingFang SC","Microsoft YaHei",Arial`; ctx.textBaseline='top';
   ctx.fillText((d.nameCn||'张三')+' / '+d.nameEn, sx, snY+10);
@@ -570,7 +570,7 @@ function drawBoardingPass(canvas,scale=1){
   ctx.strokeStyle='#f0f0f0'; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(sx,sfY); ctx.lineTo(W-14,sfY); ctx.stroke();
   const sfY2=sfY+8;
-  ctx.fillStyle='#6C7B8B'; ctx.font=`900 11px Nunito,Arial`; ctx.textBaseline='top';
+  ctx.fillStyle='#000080'; ctx.font=`900 11px Nunito,Arial`; ctx.textBaseline='top';
   ctx.fillText('航班号 FLIGHT NO.', sx, sfY2);
   ctx.fillText('舱位 CLASS', sx+sw*0.55, sfY2);
   ctx.fillStyle='#111'; ctx.font=`900 16px Arial`;
@@ -582,7 +582,7 @@ function drawBoardingPass(canvas,scale=1){
   ctx.strokeStyle='#f0f0f0'; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(sx,sdY); ctx.lineTo(W-14,sdY); ctx.stroke();
   const sdY2=sdY+8;
-  ctx.fillStyle='#6C7B8B'; ctx.font=`900 11px Nunito,Arial`; ctx.textBaseline='top';
+  ctx.fillStyle='#000080'; ctx.font=`900 11px Nunito,Arial`; ctx.textBaseline='top';
   ctx.fillText('座位号 SEAT / 日期 DATE', sx, sdY2);
   ctx.fillStyle=a.acc; ctx.font=`900 22px Arial`;
   ctx.fillText(`${d.seat} / ${ds}`, sx, sdY2+12);
@@ -592,7 +592,7 @@ function drawBoardingPass(canvas,scale=1){
   ctx.strokeStyle='#f0f0f0'; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(sx,sgY); ctx.lineTo(W-14,sgY); ctx.stroke();
   const sgY2=sgY+8;
-  ctx.fillStyle='#6C7B8B'; ctx.font=`900 11px Nunito,Arial`; ctx.textBaseline='top';
+  ctx.fillStyle='#000080'; ctx.font=`900 11px Nunito,Arial`; ctx.textBaseline='top';
   ctx.fillText('序号 BD NO.', sx, sgY2);
   ctx.fillText('登机口 GATE', sx+sw*0.52, sgY2);
   ctx.fillStyle='#111'; ctx.font=`900 18px Arial`;
@@ -605,11 +605,11 @@ function drawBoardingPass(canvas,scale=1){
   ctx.strokeStyle='#f0f0f0'; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(sx,stY); ctx.lineTo(W-14,stY); ctx.stroke();
   const stY2=stY+6;
-  ctx.fillStyle='#6C7B8B'; ctx.font=`900 11px Nunito,Arial`; ctx.textBaseline='top';
+  ctx.fillStyle='#000080'; ctx.font=`900 11px Nunito,Arial`; ctx.textBaseline='top';
   ctx.fillText('出发 FROM', sx, stY2);
   ctx.fillStyle='#111'; ctx.font=`900 11px "PingFang SC","Microsoft YaHei",Arial`;
   ctx.fillText(`${fr.cn}  ${fr.c} ${d.depTerm}`, sx, stY2+12);
-  ctx.fillStyle='#6C7B8B'; ctx.font=`900 11px Nunito,Arial`;
+  ctx.fillStyle='#000080'; ctx.font=`900 11px Nunito,Arial`;
   ctx.fillText('到达 TO', sx, stY2+30);
   ctx.fillStyle='#111'; ctx.font=`900 11px "PingFang SC","Microsoft YaHei",Arial`;
   ctx.fillText(`${to.cn}  ${to.c} ${d.arrTerm}`, sx, stY2+42);
