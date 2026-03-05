@@ -455,18 +455,18 @@ function drawBoardingPass(canvas,scale=1){
   // FROM — left edge
   ctx.fillStyle='#111'; ctx.textBaseline='alphabetic'; ctx.textAlign='left';
   ctx.fillText(fr.c, PAD, rY+cFS);
-  ctx.fillStyle='#6C7B8B'; ctx.font=`600 10px "PingFang SC","Microsoft YaHei",Arial`; ctx.textBaseline='top';
+  ctx.fillStyle='#6C7B8B'; ctx.font=`900 10px "PingFang SC","Microsoft YaHei",Arial`; ctx.textBaseline='top';
   ctx.fillText(fr.cn, PAD, rY+cFS+5);
-  ctx.fillStyle='#111'; ctx.font=`400 9px Arial`;
+  ctx.fillStyle='#111'; ctx.font=`900 9px Arial`;
   ctx.fillText(fr.en.toUpperCase(), PAD, rY+cFS+20);
 
   // TO — right-aligned to just before QR code (qrX = STUB_X-96-PAD = 739)
   const toRight = STUB_X - 96 - PAD - 12; // 727, stays clear of QR code
   ctx.fillStyle='#111'; ctx.font=`900 ${cFS}px Arial`; ctx.textBaseline='alphabetic'; ctx.textAlign='right';
   ctx.fillText(to.c, toRight, rY+cFS);
-  ctx.fillStyle='#6C7B8B'; ctx.font=`600 10px "PingFang SC","Microsoft YaHei",Arial`; ctx.textBaseline='top';
+  ctx.fillStyle='#6C7B8B'; ctx.font=`900 10px "PingFang SC","Microsoft YaHei",Arial`; ctx.textBaseline='top';
   ctx.fillText(to.cn, toRight, rY+cFS+5);
-  ctx.fillStyle='#111'; ctx.font=`400 9px Arial`;
+  ctx.fillStyle='#111'; ctx.font=`900 9px Arial`;
   ctx.fillText(to.en.toUpperCase(), toRight, rY+cFS+20);
   ctx.textAlign='left';
 
