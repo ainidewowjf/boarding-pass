@@ -562,7 +562,7 @@ function drawBoardingPass(canvas,scale=1){
   const snY=HEAD_H+10;
   ctx.fillStyle='#6C7B8B'; ctx.font=`900 11px Nunito,Arial`; ctx.textBaseline='top';
   ctx.fillText('姓名 NAME', sx, snY);
-  ctx.fillStyle='#6C7B8B'; ctx.font=`900 13px "PingFang SC","Microsoft YaHei",Arial`; ctx.textBaseline='top';
+  ctx.fillStyle='#111'; ctx.font=`900 13px "PingFang SC","Microsoft YaHei",Arial`; ctx.textBaseline='top';
   ctx.fillText((d.nameCn||'张三')+' / '+d.nameEn, sx, snY+10);
 
   // ── Stub flight + class ──
@@ -573,7 +573,7 @@ function drawBoardingPass(canvas,scale=1){
   ctx.fillStyle='#6C7B8B'; ctx.font=`900 11px Nunito,Arial`; ctx.textBaseline='top';
   ctx.fillText('航班号 FLIGHT NO.', sx, sfY2);
   ctx.fillText('舱位 CLASS', sx+sw*0.55, sfY2);
-  ctx.fillStyle='#6C7B8B'; ctx.font=`900 16px Arial`;
+  ctx.fillStyle='#111'; ctx.font=`900 16px Arial`;
   ctx.fillText(d.flightNum, sx, sfY2+12);
   ctx.fillText(d.cabin, sx+sw*0.55, sfY2+12);
 
@@ -595,7 +595,7 @@ function drawBoardingPass(canvas,scale=1){
   ctx.fillStyle='#6C7B8B'; ctx.font=`900 11px Nunito,Arial`; ctx.textBaseline='top';
   ctx.fillText('序号 BD NO.', sx, sgY2);
   ctx.fillText('登机口 GATE', sx+sw*0.52, sgY2);
-  ctx.fillStyle='#6C7B8B'; ctx.font=`900 18px Arial`;
+  ctx.fillStyle='#111'; ctx.font=`900 18px Arial`;
   ctx.fillText(d.seq, sx, sgY2+12);
   ctx.fillStyle=a.acc; ctx.font=`900 20px Arial`;
   ctx.fillText(d.gate, sx+sw*0.52, sgY2+11);
@@ -607,11 +607,11 @@ function drawBoardingPass(canvas,scale=1){
   const stY2=stY+6;
   ctx.fillStyle='#6C7B8B'; ctx.font=`900 11px Nunito,Arial`; ctx.textBaseline='top';
   ctx.fillText('出发 FROM', sx, stY2);
-  ctx.fillStyle='#6C7B8B'; ctx.font=`900 11px "PingFang SC","Microsoft YaHei",Arial`;
+  ctx.fillStyle='#111'; ctx.font=`900 11px "PingFang SC","Microsoft YaHei",Arial`;
   ctx.fillText(`${fr.cn}  ${fr.c} ${d.depTerm}`, sx, stY2+12);
   ctx.fillStyle='#6C7B8B'; ctx.font=`900 11px Nunito,Arial`;
   ctx.fillText('到达 TO', sx, stY2+30);
-  ctx.fillStyle='#6C7B8B'; ctx.font=`900 11px "PingFang SC","Microsoft YaHei",Arial`;
+  ctx.fillStyle='#111'; ctx.font=`900 11px "PingFang SC","Microsoft YaHei",Arial`;
   ctx.fillText(`${to.cn}  ${to.c} ${d.arrTerm}`, sx, stY2+42);
 
   // ── Stub barcode ──
