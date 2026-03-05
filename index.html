@@ -651,8 +651,8 @@ function getData(){
 function fmtDate(s){
   const M=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const d=s?new Date(s):new Date();
-  const year4 = date.getFullYear();
-  return String(d.getDate()).padStart(2,'0')+M[d.getMonth()+year4];
+  //const year4 = date.getFullYear();
+  return String(d.getDate()).padStart(2,'0')+M[d.getMonth()];
 }
 
 // ═══════════ RENDER ═══════════
