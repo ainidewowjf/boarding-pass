@@ -648,13 +648,25 @@ function getData(){
   };
 }
 
+//function fmtDate(s){
+  //const M=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  //const d=s?new Date(s):new Date();
+  //const year4 = date.getFullYear();
+  //return String(d.getDate()).padStart(2,'0')+M[d.getMonth()];
+//}
+
 function fmtDate(s){
   const M=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const d=s?new Date(s):new Date();
-  //const year4 = date.getFullYear();
-  return String(d.getDate()).padStart(2,'0')+M[d.getMonth()];
+  const day = String(d.getDate()).padStart(2,'0');
+  const month = M[d.getMonth()];
+  const year = d.getFullYear();
+  return day + month + year;  // 例如: 02OCT2017
 }
 
+
+
+  
 // ═══════════ RENDER ═══════════
 let _rt=null;
 function scheduleRender(){clearTimeout(_rt);_rt=setTimeout(()=>drawBoardingPass(document.getElementById('bpCanvas'),2),50);}
